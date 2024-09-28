@@ -67,10 +67,10 @@ The simplest way to create a basic EKS cluster is using the `eksctl` tool. Run t
 
 ```bash
 eksctl create cluster \
-  --name my-eks-cluster \
+  --name demo-iith-workshop \
   --region us-west-2 \
-  --nodegroup-name linux-nodes \
-  --node-type t3.medium \
+  --nodegroup-name iith-node-group \
+  --node-type t2.micro \
   --nodes 3 \
   --nodes-min 1 \
   --nodes-max 4 \
