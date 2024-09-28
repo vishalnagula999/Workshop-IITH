@@ -206,3 +206,98 @@ This will remove the EKS cluster, associated resources, and managed node groups.
 - **IAM Roles**: Ensure that the AWS user or role you’re using has the required permissions to create and manage EKS clusters, including creating VPCs, Load Balancers, EC2 instances, and associated networking resources.
 - **Networking**: By default, `eksctl` sets up a new VPC and subnets. If you want to use an existing VPC, you can provide custom VPC and subnet details.
 - **Cluster Security**: AWS IAM roles and policies are crucial for cluster and pod security. You may need to assign IAM roles to your worker nodes and set up role-based access control (RBAC) for `kubectl`.
+
+
+
+
+
+
+# Pulling Docker Image from Private Docker Hub Repository in Kubernetes
+
+## 1. Create a Docker Registry Secret
+
+To pull an image from a private Docker Hub repository, you need to create a Kubernetes Secret that contains your Docker Hub credentials.
+
+Run the following command:
+
+```bash
+kubectl create secret docker-registry my-dockerhub-secret   --docker-username=<your-docker-username>   --docker-password=<your-docker-password>   --docker-email=<your-email>   --docker-server=https://index.docker.io/v1/
+```
+
+- `my-dockerhub-secret`: This is the name of the secret.
+- `--docker-username`: Your Docker Hub username.
+- `--docker-password`: Your Docker Hub password.
+- `--docker-email`: The email registered with your Docker Hub account.
+- `--docker-server`: The Docker Hub registry URL.
+
+## 2. Modify the Kubernetes Deployment YAML
+
+In your Kubernetes `deployment.yaml` file, you need to specify the `imagePullSecrets` field under the `spec` section so that Kubernetes knows to use the credentials stored in the secret.
+
+Here is an example `deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app-container
+        image: <docker-username>/<repository-name>:<tag>  # Docker image from private repo
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: my-dockerhub-secret  # Use the secret created in step 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+```
+
+- The `imagePullSecrets` section tells Kubernetes to use the `my-dockerhub-secret` when pulling the image.
+
+## 3. Deploy the Application
+
+Once the secret is created and the deployment YAML is updated, you can apply it to your cluster:
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+## 4. Verify the Deployment
+
+To check the status of your pods and see if the image is pulled successfully, run:
+
+```bash
+kubectl get pods
+```
+
+If the pods are in the `Running` state, the image was successfully pulled from the private Docker repository.
+
+---
+
+## Troubleshooting
+
+- **Authentication Failure**: Verify your Docker Hub credentials are correct.
+- **Invalid Secret Reference**: Ensure the secret name matches the one specified in the `imagePullSecrets` field.
+
+This method securely pulls images from private Docker repositories in Kubernetes by using a secret.
