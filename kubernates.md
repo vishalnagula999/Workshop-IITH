@@ -7,8 +7,9 @@
    Make sure the AWS CLI is installed. You can download and install it using the command below:
    
    ```bash
-   curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-   sudo installer -pkg AWSCLIV2.pkg -target /
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
    ```
 
    Verify the installation:
